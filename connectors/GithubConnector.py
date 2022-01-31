@@ -202,7 +202,7 @@ class GithubConnector:
 
     def print(self):
         """
-        print() print the latest updates from Github on terminal
+        print() get the latest updates from Github and print on terminal
         """
         updates = self.getLatestRepositories(
             self.language, self.searchRange, self.pingRange)
@@ -214,3 +214,19 @@ class GithubConnector:
             print("=====================================")
             print()
             print(resstr)
+
+    def pingTelegram(self):
+        """
+        pingTelegram() get the latest updates from Github and ping on Telegram
+        """
+        updates = self.getLatestRepositories(
+            self.language, self.searchRange, self.pingRange)
+        formattedUpdates = self.formatUpdates(updates)
+
+        for commit in formattedUpdates:
+            resstr = self.formatResponseString(commit)
+            data = {
+                "chat_id": settings.TELEGRAM_CHAT,
+                "text": resstr
+            }
+            requests.post(settings.TELEGRAM_URL, data)
