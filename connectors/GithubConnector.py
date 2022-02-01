@@ -1,5 +1,7 @@
+from datetime import datetime as dt
+from datetime import timedelta as td
+
 import requests
-from datetime import datetime as dt, timedelta as td
 import settings
 
 
@@ -14,9 +16,9 @@ class GithubConnector:
         """
         getLatestRepositories() gets the latest updates from Github API using the input query parameters
 
-        :language: target language
-        :searchRange: range while querying through Github API, min 1 day (unit: days)
-        :pingRange: range while querying through Github API, min 1 day (unit: days)
+        :language: string, target language
+        :searchRange: number, range while querying through Github API, min 1 day (unit: days)
+        :pingRange: number, range while querying through Github API, min 1 day (unit: days)
         """
         updates = []
 
@@ -54,7 +56,11 @@ class GithubConnector:
         return updates
 
     def getUserInfo(self, url):
+        """
+        getUserInfo() retrieves the user data from Github users API
 
+        :url: string, https://api.github.com/users/{user_name}
+        """
         try:
             response = requests.get(url, auth=requests.auth.HTTPBasicAuth(
                 settings.GITHUB_USERNAME,
@@ -74,7 +80,7 @@ class GithubConnector:
                 "updated_at": dt.strptime(response["updated_at"], "%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        except:
+        except Exception as e:
             return {
                 "login": "",
                 "id": "",
@@ -89,7 +95,11 @@ class GithubConnector:
             }
 
     def getlastCommit(self, url):
+        """
+        getUserInfo() retrieves the commit data from Github repo API
 
+        :url: string, https://api.github.com/repos/{user_name}/{repo_nmae}/commits
+        """
         try:
             response = requests.get(url, auth=requests.auth.HTTPBasicAuth(
                 settings.GITHUB_USERNAME,
@@ -104,7 +114,7 @@ class GithubConnector:
                 "message": lastCommit["commit"]["message"],
             }
 
-        except:
+        except Exception as e:
             return {
                 "sha": "",
                 "node_id": "",
@@ -116,7 +126,7 @@ class GithubConnector:
         """
         formatUpdates() formats the filtered updates returned by Github API
 
-        :updates: list of updates returned by Github API
+        :updates: list of dictionaries, list of updates returned by Github API
         """
         formattedUpdates = []
 
@@ -149,12 +159,23 @@ class GithubConnector:
         return formattedUpdates
 
     def checkStringLength(self, string, maxLen):
+        """
+        checkStringLength() checks if a string is too long and shorten it if it excedds max length
+
+        :string: string, target string
+        :maxLen: integer, max length of the string
+        """
         if (string and len(string) >= maxLen):
             return string[:maxLen] + "...(continue)"
         else:
             return string
 
     def formatResponseString(self, commit):
+        """
+        formatResponseString() formats the data retrieved by getLatestRepositories() into response string for Telegram
+
+        :commit: dictionary, dict returned by getLatestRepositories()
+        """
         resstr = ""
 
         lastUpdate = max(commit["updated_at"], commit["pushed_at"])
@@ -188,6 +209,44 @@ class GithubConnector:
 
         resstr += f"Owner: {owner} (followers: {followers})\n"
         resstr += f"Bio: {bio}\n\n"
+
+        resstr += f"Last Commit: {lastCommitMessage}\n"
+        resstr += f"Author: {lastCommitAuthor}\n\n"
+
+        resstr += f"Stargazers: {stargazers}\n"
+        resstr += f"Watchers: {watchers}\n"
+        resstr += f"Forks: {forks}\n\n"
+
+        resstr += f"URL: {url}\n"
+
+        return resstr
+
+    def formatTwitterString(self, commit):
+        """
+        formatResponseString() formats the data retrieved by getLatestRepositories() into response string for Twitter
+
+        :commit: dictionary, dict returned by getLatestRepositories()
+        """
+        resstr = ""
+
+        name = commit["full_name"]
+        url = commit["html_url"]
+        description = self.checkStringLength(commit["description"], 180)
+
+        owner = commit["owner"]["login"]
+        followers = commit["owner"]["followers"]
+        bio = self.checkStringLength(commit["owner"]["bio"], 180)
+        publicRepos = commit["owner"]["public_repos"]
+
+        stargazers = commit["stargazers_count"]
+        watchers = commit["watchers_count"]
+        forks = commit["forks_count"]
+
+        lastCommitAuthor = commit["lastCommit"]["author"]
+        lastCommitMessage = commit["lastCommit"]["message"]
+
+        resstr += f"Name: {name}\n"
+        resstr += f"Description: {description}\n\n"
 
         resstr += f"Last Commit: {lastCommitMessage}\n"
         resstr += f"Author: {lastCommitAuthor}\n\n"
