@@ -307,13 +307,9 @@ class GithubConnector:
 
         api = self.authTwitter()
 
-        commit = formattedUpdates[0]
-        resstr = self.formatTwitterString(commit)
-        api.update_status(resstr)
-
-        # for commit in formattedUpdates:
-        #     try:
-        #         resstr = self.formatTwitterString(commit)
-        #         api.update_status(resstr)
-        #     except Exception:
-        #         pass
+        for commit in formattedUpdates:
+            try:
+                resstr = self.formatTwitterString(commit)
+                api.update_status(resstr)
+            except Exception:
+                pass
