@@ -1,5 +1,5 @@
 # Github Push Notification
-A tool for tracking updates in Github repositories and sending push notifications to Telegram/Twitter
+A tool for tracking updates in Github repositories and sending push notifications to Telegram / Twitter
 
 # Local Development
 
