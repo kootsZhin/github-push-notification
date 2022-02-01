@@ -3,6 +3,7 @@ from datetime import timedelta as td
 
 import requests
 import settings
+import tweepy
 
 
 class GithubConnector:
@@ -231,12 +232,10 @@ class GithubConnector:
 
         name = commit["full_name"]
         url = commit["html_url"]
-        description = self.checkStringLength(commit["description"], 180)
+        description = self.checkStringLength(commit["description"], 90)
 
         owner = commit["owner"]["login"]
         followers = commit["owner"]["followers"]
-        bio = self.checkStringLength(commit["owner"]["bio"], 180)
-        publicRepos = commit["owner"]["public_repos"]
 
         stargazers = commit["stargazers_count"]
         watchers = commit["watchers_count"]
@@ -253,9 +252,9 @@ class GithubConnector:
 
         resstr += f"Stargazers: {stargazers}\n"
         resstr += f"Watchers: {watchers}\n"
-        resstr += f"Forks: {forks}\n\n"
+        resstr += f"Forks: {forks}\n"
 
-        resstr += f"URL: {url}\n"
+        resstr += f"{url}\n"
 
         return resstr
 
@@ -289,3 +288,32 @@ class GithubConnector:
                 "text": resstr
             }
             requests.post(settings.TELEGRAM_URL, data)
+
+    def authTwitter(self):
+        """
+        authTwitter() authenticates the use of Twitter API
+        """
+        auth = tweepy.OAuthHandler(settings.TWITTER_API_KEY, settings.TWITTER_API_SECRET)
+        auth.set_access_token(settings.TWITTER_ACCESS_TOKEN, settings.TWITTER_ACCESS_TOKEN_SECRET)
+        return tweepy.API(auth)
+
+    def pingTwitter(self):
+        """
+        pingTwitter() get the latest updates from Github and ping on Twitter
+        """
+        updates = self.getLatestRepositories(
+            self.language, self.searchRange, self.pingRange)
+        formattedUpdates = self.formatUpdates(updates)
+
+        api = self.authTwitter()
+
+        commit = formattedUpdates[0]
+        resstr = self.formatTwitterString(commit)
+        api.update_status(resstr)
+
+        # for commit in formattedUpdates:
+        #     try:
+        #         resstr = self.formatTwitterString(commit)
+        #         api.update_status(resstr)
+        #     except Exception:
+        #         pass
