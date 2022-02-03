@@ -6,7 +6,7 @@ solidity = GithubConnector("Solidity", 1, 30)
 solidity.print()
 
 # ping in telegram
-solidity.telegram()
+solidity.pingTelegram()
 
 # ping on twitter
 solidity.pingTwitter()
