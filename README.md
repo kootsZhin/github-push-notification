@@ -1,5 +1,7 @@
 # Github Push Notification
-A tool for tracking updates in Github repositories and sending push notifications to Telegram / Twitter
+A tool for tracking updates in Github repositories and sending push notifications to Telegram / Twitter. 
+
+Skeleton code for [SolidityGithub on Twitter](https://twitter.com/SolidityGithub).
 
 # Local Development
 
